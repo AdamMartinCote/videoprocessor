@@ -158,45 +158,6 @@ def edge_detection(cap: cv2.VideoCapture, **kwargs) -> []:
     cuts = []
     i = 0
     D_list = []
-    E_list = []
-    output_object = []
-    while True:
-        (rv, im) = cap.read()  # im is a valid image if and only if rv is true
-        if not rv:
-            break
-        im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)  # convert from BGR to RGB
-
-        i += 1
-        if False and i > 10:
-            print("Breaking early for testing")
-            break
-
-        E = cv2.Canny(im, 0, 500)
-        D = expand_edges(E)
-
-        # np.multiply est le element-wise product, pas le produit matriciel
-        # (parce que je l'oubli tout le temps.
-        if D_list and E_list:
-            SE = np.sum(E)
-            rho_in = np.sum(np.multiply(D_list[-1], E)) / SE
-            rho_out = np.sum(np.multiply(E_list[-1], D)) / SE
-            # print("i = {}, rho_in = {}, rho_out = {}".format(i, rho_in, rho_out))
-            output_object.append((i, rho_in, rho_out))
-
-        D_list.append(D)
-        E_list.append(E)
-
-    with open('rho_value.json', 'w+') as f:
-        f.write(json.dumps(output_object, indent=2))
-
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # rewind video for further uses
-    return cuts
-
-
-def edge_detection2(cap: cv2.VideoCapture, **kwargs) -> []:
-    cuts = []
-    i = 0
-    D_list = []
     deltas = []
     last_delta = 0
     while True:

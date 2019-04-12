@@ -18,16 +18,11 @@ class Video:
             raise ValueError(filename)
         self.detection_algo = getattr(algo, 'naive')
         # print(self.get_dimensions())
-
+        self.height = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        self.width  = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
 
     def __del__(self):
         self.cap.release()
-
-    def get_dimensions(self) -> {}:
-        return {
-            'height': self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT),
-            'width': self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        }
 
     def set_algo(self, algo_name):
         try:
@@ -71,12 +66,10 @@ def main():
         print("Could not open {}", filename)
         return
 
-    run_algo(video, 'naive', None)
-    run_algo(video, 'multimean_cuts', None)
+    # run_algo(video, 'naive', None)
     # run_algo(video, 'fade_cuts', 100)
-    # run_algo(video, 'hybrid', 100)
-    # run_algo(video, 'edge_detection', None)
     # run_algo(video, 'edge_detection_cached', None)
+    run_algo(video, 'edge_detection', None)
 
 
 if __name__ == "__main__":
