@@ -129,6 +129,8 @@ def multimean(im):
 
 def multimean_cuts_generator(cap: cv2.VideoCapture, **kwargs) -> []:
     threshold = kwargs.get('threshold', 30)
+    if threshold is None:
+        threshold = 30
     multimeans = []
     while True:
         rv, im = cap.read()
