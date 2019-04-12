@@ -178,22 +178,47 @@ def edge_detection(cap: cv2.VideoCapture, **kwargs) -> []:
             SE = np.sum(E)
             rho_in = np.sum(np.multiply(D_list[-1], E)) / SE
             rho_out = np.sum(np.multiply(E_list[-1], D)) / SE
-            print("i = {}, rho_in = {}, rho_out = {}".format(i, rho_in, rho_out))
+            # print("i = {}, rho_in = {}, rho_out = {}".format(i, rho_in, rho_out))
             output_object.append((i, rho_in, rho_out))
 
         D_list.append(D)
         E_list.append(E)
 
-        # plt.plot(122), plt.imshow(E, cmap='gray')
-        # plt.title('Edge Image'), plt.xticks([]), plt.yticks([])
-        # plt.show()
-
-
     with open('rho_value.json', 'w+') as f:
         f.write(json.dumps(output_object, indent=2))
 
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # rewind video for further uses
+    return cuts
+
+
+def edge_detection2(cap: cv2.VideoCapture, **kwargs) -> []:
+    cuts = []
+    i = 0
+    D_list = []
+    deltas = []
+    last_delta = 0
+    while True:
+        (rv, im) = cap.read()  # im is a valid image if and only if rv is true
+        if not rv:
+            break
+        im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)  # convert from BGR to RGB
+
+        E = cv2.Canny(im, 0, 500)
+        D_list.append(255 - expand_edges_fast(E))
+        if len(D_list) < 2:
+            continue
+        delta = np.sum(np.multiply(E, D_list[-2])) / np.sum(D_list[-2]) * 100
+
+        deltas.append(delta)
+        match = abs(delta-last_delta) > 0.5
+        if match:
+            cuts.append(int(cap.get(cv2.CAP_PROP_POS_FRAMES)))
+        i += 1
+        # print("{}: {} ".format(i, delta-last_delta))
+        last_delta = delta
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # rewind video for further uses
+    # plt.plot(deltas), plt.show()
     return cuts
 
 
@@ -205,6 +230,11 @@ def expand_edges(img: np.array) -> np.array:
         img,
         lambda x: 0 if x.any() else 1,
         footprint=neighbors)
+
+
+def expand_edges_fast(img: np.array) -> np.array:
+    return cv2.GaussianBlur(img, (3, 3), 0)
+
 
 def edge_detection_cached(cap: cv2.VideoCapture, **kwargs) -> []:
     with open('rho_value.json') as f:
@@ -231,8 +261,8 @@ def edge_detection_cached(cap: cv2.VideoCapture, **kwargs) -> []:
     return [int((interval[0] + interval[1])/2.0) for interval in intervals]
 
 
-def plot_array(arr) -> None:
+def plot_array(arr, title='image') -> None:
     plt.plot(122), plt.imshow(arr, cmap='gray')
-    plt.title('Edge Image'), plt.xticks([]), plt.yticks([])
+    plt.title(title), plt.xticks([]), plt.yticks([])
     plt.show()
 
